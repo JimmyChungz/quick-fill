@@ -1,0 +1,38 @@
+{
+  "name": "quick-fill",
+  "version": "0.6.2",
+  "private": true,
+  "type": "module",
+  "description": "本地保存的登录与身份信息自动填充 (Chromium MV3)",
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "dev": "node esbuild.config.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "icons": "node scripts/gen-icons.mjs",
+    "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
+    "package": "node scripts/package.mjs",
+    "verify": "npm run lint && npm run typecheck && npm run test:coverage && node --test test/package.test.mjs test/build-deploy.test.mjs test/public-source.test.mjs",
+    "deploy": "node scripts/deploy.mjs",
+    "source:scan": "node scripts/public-source.mjs --scan-only",
+    "source:package": "node scripts/public-source.mjs",
+    "test:coverage": "vitest run --coverage",
+    "test:browser": "npm run build && node --test --test-concurrency=1 test/browser/*.e2e.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@types/node": "24.19.2",
+    "@vitest/coverage-v8": "5.0.5",
+    "esbuild": "0.28.2",
+    "jsdom": "^24.0.0",
+    "playwright": "1.64.1",
+    "sharp": "0.35.5",
+    "typescript": "^5.4.5",
+    "vite": "8.3.4",
+    "vitest": "5.0.5"
+  },
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "license": "MIT"
+}

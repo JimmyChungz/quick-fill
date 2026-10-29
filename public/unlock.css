@@ -1,0 +1,9 @@
+:root {color-scheme:light;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#20242a;background:#fff}*{box-sizing:border-box}body{margin:0;padding:16px}header{display:flex;align-items:center;justify-content:space-between;gap:8px}header strong{font-size:16px}button,input{font:inherit}button{cursor:pointer;border:1px solid #ccd2da;border-radius:6px;padding:7px 12px;background:#fff}#close{font-size:21px;line-height:1;padding:4px 8px}p{font-size:12px;color:#526174;margin:10px 0}form{display:grid;gap:8px}input{width:100%;min-width:0;border:1px solid #9ba7b7;border-radius:6px;padding:9px}#unlock{background:#245fcb;color:#fff;border-color:#245fcb}button:disabled{opacity:.55;cursor:wait}input:focus-visible,button:focus-visible{outline:2px solid #245fcb;outline-offset:2px}#status{color:#9c3030;min-height:18px;overflow-wrap:anywhere}
+
+.master-password-row { position: relative; display: flex; align-items: center; }
+.master-password-row input { flex: 1; min-width: 0; width: 100%; font: inherit; padding: 8px; padding-right: 46px !important; }
+.master-password-row .password-eye { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); width: 38px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 5px; border: 0; background: transparent; color: #526174; cursor: pointer; }
+.password-eye .eye-open { display: none; }
+.password-eye[aria-pressed="true"] .eye-open { display: inline; }
+.password-eye[aria-pressed="true"] .eye-closed { display: none; }
+.password-eye:focus-visible { outline: 2px solid #245fcb; outline-offset: -2px; border-radius: 5px; }

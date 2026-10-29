@@ -1,0 +1,34 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+
+# 打包与签名产物（.pem 是私钥，绝不能进仓库）
+*.zip
+*.crx
+*.pem
+*.key
+
+# 工具运行时留下的临时文件
+vitest.config.ts.timestamp-*.mjs
+*.log
+
+# 系统文件
+.DS_Store
+
+# Local verification residue
+node_modules-incomplete/
+releases/
+release-evidence/
+.superpowers/
+
+# Disposable build output; dist is the installed runtime and must be preserved
+.build/
+
+# Private recovery assets and user exports must never enter source history
+.env
+.env.*
+quickfill-*.json
+**/quick-fill-backups/
+**/browser-storage-recovery-*/

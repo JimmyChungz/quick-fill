@@ -1,0 +1,193 @@
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #222;
+  width: 320px;
+  background: #fff;
+}
+header {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+header input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font: inherit;
+}
+main {
+  max-height: 400px;
+  overflow-y: auto;
+}
+section { padding: 4px 0 8px; }
+h2 {
+  font-size: 11px;
+  color: #888;
+  padding: 6px 10px 2px;
+  margin: 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+ul { list-style: none; margin: 0; padding: 0; }
+.item {
+  padding: 8px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #f5f5f5;
+}
+.item:hover { background: #f0f7ff; }
+.item .main { font-weight: 500; }
+.item .sub { font-size: 11px; color: #888; margin-top: 2px; }
+footer {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  border-top: 1px solid #eee;
+  background: #fafafa;
+}
+footer button {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+footer button:hover { background: #f0f7ff; }
+
+/* Shared form styles for the persistent editor. */
+.form-panel {
+  padding: 10px 12px;
+  border-top: 1px solid #eee;
+  background: #fafbfc;
+}
+.form-panel h3 {
+  font-size: 13px;
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+.form-panel input {
+  display: block;
+  width: 100%;
+  padding: 5px 7px;
+  margin-bottom: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font: inherit;
+}
+.form-panel input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+.form-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.form-actions button {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+.form-actions button.primary {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+}
+.form-actions button.primary:hover { background: #2563eb; }
+.form-actions button:hover { background: #f0f7ff; }
+
+/* Password row: masked by default, with an explicit reveal toggle (PRODUCT §管理) */
+.pw-row { display: flex; gap: 4px; align-items: center; }
+.pw-row input { flex: 1; margin-bottom: 5px; }
+.pw-row button {
+  flex: 0 0 auto;
+  height: 26px;
+  padding: 0 7px;
+  margin-bottom: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  color: #666;
+}
+.pw-row button:hover { background: #f0f7ff; }
+
+[hidden] { display: none !important; }
+.error { margin: 8px; padding: 8px; color: #a40000; background: #fff0f0; overflow-wrap: anywhere; }
+#retry { margin: 4px 8px; }
+.item button { display: block; width: 100%; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+.item span { display: block; overflow-wrap: anywhere; }
+button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+button:disabled { opacity: .6; cursor: wait; }
+
+/* In a browser tab, the fields scroll independently of the heading and actions. */
+body.editor-mode {
+  width: 100%;
+  max-width: 760px;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 15px;
+}
+.editor-mode #editor-header { position: static; flex: 0 0 auto; padding: 16px; }
+#editor-header h1 { margin: 0 0 6px; font-size: 20px; }
+#editor-header p { margin: 0; color: #555; }
+.editor-mode .error { flex: 0 0 auto; max-height: 20vh; overflow-y: auto; }
+.editor-mode #retry { align-self: flex-start; flex: 0 0 auto; }
+.editor-mode .form-panel { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; padding: 0; }
+.editor-mode .form-fields { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 12px 16px; scroll-padding-block: 12px; }
+.editor-mode .form-fields h2 { padding: 0 0 12px; font-size: 15px; color: #333; }
+.form-fields label { display: block; margin: 8px 0 4px; }
+.editor-mode .form-panel input { padding: 9px; min-width: 0; margin-bottom: 8px; }
+.editor-mode .pw-row button { height: 39px; margin-bottom: 8px; }
+.editor-mode .form-actions { flex: 0 0 auto; margin: 0; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid #ddd; background: #fff; }
+.editor-mode .form-actions button { min-height: 40px; overflow-wrap: anywhere; }
+#editor-complete { padding: 16px; }
+#editor-status { margin-top: 0; }
+@media (max-height: 420px) {
+  .editor-mode #editor-header { padding: 8px 12px; }
+  .editor-mode #editor-header p { display: none; }
+  .editor-mode .form-actions { padding-top: 8px; padding-bottom: 8px; }
+}
+
+.editor-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.editor-heading h1 { min-width: 0; }
+.editor-heading button { padding: 6px 8px; font: inherit; flex: 0 0 auto; }
+
+#vault-unlock-panel { padding: 16px; }
+#vault-unlock-panel h1 { margin: 0 0 8px; font-size: 18px; }
+#popup-unlock-help { color: #555; }
+#vault-unlock-form { display: grid; gap: 10px; }
+#popup-master-password { width: 100%; padding: 8px; border: 1px solid #bbb; border-radius: 4px; font: inherit; }
+#popup-unlock { padding: 9px; cursor: pointer; }
+#popup-master-password:focus-visible, #popup-unlock:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+.master-password-row { position: relative; display: flex; align-items: center; }
+.master-password-row input { flex: 1; min-width: 0; width: 100%; font: inherit; padding: 8px; padding-right: 46px !important; }
+.master-password-row .password-eye { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); width: 38px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 5px; border: 0; background: transparent; color: #526174; cursor: pointer; }
+.password-eye .eye-open { display: none; }
+.password-eye[aria-pressed="true"] .eye-open { display: inline; }
+.password-eye[aria-pressed="true"] .eye-closed { display: none; }
+.password-eye:focus-visible { outline: 2px solid #245fcb; outline-offset: -2px; border-radius: 5px; }
+
+.legacy-warning { padding: 12px 16px; margin: 8px; border: 1px solid #d9b25c; border-radius: 6px; background: #fff8e6; color: #58451d; }
+.legacy-warning p { margin: 0 0 8px; }
+.legacy-warning button { padding: 7px 10px; cursor: pointer; }

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>快填 · 字段识别测试页</title>
+  <style>
+    :root { color-scheme: light; }
+    body {
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #222; max-width: 760px; margin: 24px auto; padding: 0 16px;
+    }
+    h1 { font-size: 18px; margin: 0 0 8px; }
+    .hint { color: #888; font-size: 12px; margin-bottom: 24px; }
+    section { padding: 18px 20px; border-bottom: 1px solid #eee; }
+    section:last-of-type { border-bottom: none; }
+    h2 {
+      font-size: 11px; color: #fff; background: #3b82f6;
+      padding: 4px 10px; border-radius: 3px; display: inline-block;
+      margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .expected { color: #888; font-size: 11px; margin-bottom: 12px; font-style: italic; }
+    .row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .row label { min-width: 160px; color: #555; font-size: 13px; }
+    .row input, .row textarea { flex: 1; padding: 4px 6px; border: 1px solid #ccc; border-radius: 3px; font: inherit; }
+    .row input[disabled], .row input[readonly] { background: #f5f5f5; color: #999; }
+    .state { margin-top: 8px; padding: 8px; background: #f5f5f5; border-radius: 3px; font-family: monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<h1>快填 · 字段识别测试页</h1>
+<p class="hint">
+  打开 DevTools console，按 [qf] 过滤。每聚焦一个字段，下面应该出现一行
+  <code>content: focusin ... token:&lt;X&gt;</code>。对照每节 <b>expected</b> 看 token 对不对。
+</p>
+
+<!-- ============================================ -->
+<section>
+  <h2>① W3C autocomplete 标准 token</h2>
+  <div class="expected">期望全部正确识别（autocomplete 是最高优先级）</div>
+  <div class="row"><label>name</label><input data-qf="t1-name" data-qf-expect="name" autocomplete="name"></div>
+  <div class="row"><label>given-name</label><input data-qf="t1-given" data-qf-expect="given-name" autocomplete="given-name"></div>
+  <div class="row"><label>family-name</label><input data-qf="t1-family" data-qf-expect="family-name" autocomplete="family-name"></div>
+  <div class="row"><label>email</label><input data-qf="t1-email" data-qf-expect="email" type="email" autocomplete="email"></div>
+  <div class="row"><label>tel</label><input data-qf="t1-tel" data-qf-expect="tel" type="tel" autocomplete="tel"></div>
+  <div class="row"><label>street-address</label><input data-qf="t1-street" data-qf-expect="street-address" autocomplete="street-address"></div>
+  <div class="row"><label>address-level2 (city)</label><input data-qf="t1-city" data-qf-expect="city" autocomplete="address-level2"></div>
+  <div class="row"><label>address-level1 (state)</label><input data-qf="t1-state" data-qf-expect="region" autocomplete="address-level1"></div>
+  <div class="row"><label>postal-code</label><input data-qf="t1-zip" data-qf-expect="postal-code" autocomplete="postal-code"></div>
+  <div class="row"><label>country</label><input data-qf="t1-country" data-qf-expect="country" autocomplete="country"></div>
+  <div class="row"><label>organization</label><input data-qf="t1-org" data-qf-expect="organization" autocomplete="organization"></div>
+</section>
+
+<!-- ============================================ -->
+<section>
+  <h2>② 英文 name/id（启发式回退）</h2>
+  <div class="expected">期望全部正确识别（heuristic 命中 name/id 正则）</div>
+  <div class="row"><label>full name</label><input data-qf="t2-fullname" data-qf-expect="name" name="fullname"></div>
+  <div class="row"><label>first name</label><input data-qf="t2-first" data-qf-expect="given-name" name="firstName"></div>
+  <div class="row"><label>last name</label><input data-qf="t2-last" data-qf-expect="family-name" name="lastName"></div>
+  <div class="row"><label>email</label><input data-qf="t2-email" data-qf-expect="email" name="email"></div>
+  <div class="row"><label>phone</label><input data-qf="t2-phone" data-qf-expect="tel" name="phone"></div>
+  <div class="row"><label>city</label><input data-qf="t2-city" data-qf-expect="city" name="city"></div>
+  <div class="row"><label>zip / postal</label><input data-qf="t2-zip" data-qf-expect="postal-code" name="zip"></div>
+  <div class="row"><label>country</label><input data-qf="t2-country" data-qf-expect="country" name="country"></div>
+  <div class="row"><label>company</label><input data-qf="t2-company" data-qf-expect="organization" name="company"></div>
+  <div class="row"><label>street</label><input data-qf="t2-street" data-qf-expect="street-address" name="street"></div>
+</section>
+
+<!-- ============================================ -->
+<section>
+  <h2>③ 中文 placeholder（启发式回退）</h2>
+  <div class="expected">期望全部正确识别（heuristic 命中中文关键字）</div>
+  <div class="row"><label>姓名</label><input data-qf="t3-name" data-qf-expect="name" placeholder="请输入姓名"></div>
+  <div class="row"><label>邮箱</label><input data-qf="t3-email" data-qf-expect="email" placeholder="邮箱地址"></div>
+  <div class="row"><label>手机</label><input data-qf="t3-tel" data-qf-expect="tel" placeholder="手机号"></div>
+  <div class="row"><label>城市</label><input data-qf="t3-city" data-qf-expect="city" placeholder="所在城市"></div>
+  <div class="row"><label>省份</label><input data-qf="t3-state" data-qf-expect="region" placeholder="所在省份"></div>
+  <div class="row"><label>邮编</label><input data-qf="t3-zip" data-qf-expect="postal-code" placeholder="邮政编码"></div>
+  <div class="row"><label>国家</label><input data-qf="t3-country" data-qf-expect="country" placeholder="所在国家"></div>
+  <div class="row"><label>公司</label><input data-qf="t3-org" data-qf-expect="organization" placeholder="公司名称"></div>
+  <div class="row"><label>详细地址</label><input data-qf="t3-street" data-qf-expect="street-address" placeholder="详细地址"></div>
+</section>
+
+<!-- ============================================ -->
+<section>
+  <h2>④ "烂站"风格（无 autocomplete, name 是 generated）</h2>
+  <div class="expected">期望全部返回 null（heuristic 也不认）→ 弹层不弹，符合预期</div>
+  <div class="row"><label>field_1</label><input data-qf="t4-1" data-qf-expect="null" class="form-control" name="field_1"></div>
+  <div class="row"><label>field_2</label><input data-qf="t4-2" data-qf-expect="null" class="form-control" name="field_2"></div>
+  <div class="row"><label>field_3</label><input data-qf="t4-3" data-qf-expect="null" class="form-control" name="field_3"></div>
+  <div class="row"><label>field_4</label><input data-qf="t4-4" data-qf-expect="null" class="form-control" name="field_4"></div>
+</section>
+
+<!-- ============================================ -->
+<section>
+  <h2>⑤ Edge cases（即使识别对，也应被跳过）</h2>
+  <div class="expected">disabled / readonly / hidden / display:none / visibility:hidden → 应被 fill 跳过</div>
+  <div class="row"><label>disabled</label><input data-qf="t5-disabled" data-qf-expect="email" data-qf-skipped="true" name="email" disabled></div>
+  <div class="row"><label>hidden (type)</label><input data-qf="t5-hidden" data-qf-expect="email" data-qf-skipped="true" type="hidden" name="email"></div>
+  <div class="row"><label>readonly</label><input data-qf="t5-readonly" data-qf-expect="email" data-qf-skipped="true" name="email" readonly></div>
+  <div class="row"><label>display:none</label><input data-qf="t5-dispnone" data-qf-expect="email" name="email" style="display:none"></div>
+  <div class="row"><label>visibility:hidden</label><input data-qf="t5-vishidden" data-qf-expect="email" name="email" style="visibility:hidden"></div>
+</section>
+
+<!-- ============================================ -->
+<section>
+  <h2>⑥ React 风格受控组件（手写模拟）</h2>
+  <div class="expected">填值后下方 state 文本应同步更新；这是检验"原生 setter + input 事件"能驱动 React state</div>
+  <div class="row"><label>受控姓名</label><input data-qf="t6-name" data-qf-expect="name" id="r-name" value="" autocomplete="name"></div>
+  <div class="row"><label>受控邮箱</label><input data-qf="t6-email" data-qf-expect="email" id="r-email" value="" autocomplete="email"></div>
+  <div class="row"><label>受控电话</label><input data-qf="t6-tel" data-qf-expect="tel" id="r-tel" value="" autocomplete="tel"></div>
+  <div class="state" id="r-state">{}</div>
+  <script>
+    // 简版 React 模拟：用 Proxy 跟踪"state"，input 事件触发重渲染
+    const state = { name: '', email: '', tel: '' };
+    const stateEl = document.getElementById('r-state');
+    const inputs = {
+      name: document.getElementById('r-name'),
+      email: document.getElementById('r-email'),
+      tel: document.getElementById('r-tel'),
+    };
+    function render() { stateEl.textContent = JSON.stringify(state); }
+    for (const k of Object.keys(inputs)) {
+      inputs[k].addEventListener('input', (e) => {
+        state[k] = e.target.value;
+        render();
+      });
+    }
+    render();
+  </script>
+</section>
+
+</body>
+</html>

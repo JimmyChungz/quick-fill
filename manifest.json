@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "快填(Quick Fill)",
+  "version": "0.6.2",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1NqWIBscXMujxXaS2067E1nbAgBTpY/hY1LWAz+c/4CYJfG6Vh6YOnGb/tyixAok1IvyQsRhlLUhRblB+AenILKAGhWrutsfw0Ypi+8MzWZQmhkq1URTTiFeHQvtypeLcrNyj67JCROMkf6lLtSG6ji0IoJyQ1aeju1PzjRo1XFaQJYER6VDgFdfE+r16yPL+Rn6ZWigQ58CDG/DfgEUAqBpmtTstJCz88VH829O3HzT+V8FJ2DLYwWsvCdKh90ABrUMcSQHn392q1h0FxupHjSGDRFtXfQ/o3gItM0IqOBTgfdmApkqsR9qsSQGyTSg06bZM2sMB0f1rOUuVjYtmwIDAQAB",
+  "description": "本地保存的登录与身份信息自动填充",
+  "permissions": [
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "快填",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "minimum_chrome_version": "120",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "unlock.html",
+        "unlock.js",
+        "unlock.css"
+      ],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ]
+    }
+  ]
+}

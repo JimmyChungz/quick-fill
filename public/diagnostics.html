@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>快填 · 安装与登录诊断</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>快填 · 安装与登录诊断</h1>
+    <p><a href="options.html">返回管理页</a></p>
+    <p>上方结果区只读取本扩展的安装、启用、图标固定状态，以及存储键名和记录条数。账号、密码和地址等记录值不会显示。不会修改保存的记录、不下载文件、不上传信息，也不枚举其他扩展。下方登录诊断需手动开启，仅写入短期脱敏事件。</p>
+    <section aria-label="本扩展状态" aria-live="polite">
+      <h2>安装与图标</h2>
+      <p id="installation">安装方式读取中…</p>
+      <p id="enabled">启用状态读取中…</p>
+      <p id="toolbar">工具栏状态读取中…</p>
+    </section>
+    <section>
+      <h2>重启后图标或卡片不见了</h2>
+      <p>先在 Chrome 右上角的拼图菜单中查找快填，再打开 chrome://extensions 查看卡片是否存在、是否启用，以及是否出现错误提示。未固定图标、扩展停用、页面打不开是不同情况。单凭图标不见或页面打不开，不能判断扩展已经卸载。</p>
+      <p>本页若无法打开，请从 chrome://extensions 的快填卡片核对 ID 和版本；如果找不到卡片，先确认是否打开了安装快填时使用的 Chrome 个人资料。记录看到的提示后再处理。</p>
+      <p>本地未打包版本请保持开发者模式开启，保留加载时的固定目录和 manifest key，使路径与 ID 保持稳定。更新已有安装时覆盖固定目录内的文件，再点击卡片上的重新加载；不要移除后重装，也不要通过改 Chrome 偏好设置或 flags 绕过限制。</p>
+      <p>如果希望关闭开发者模式并获得常规自动更新，需要 Chrome Web Store 分发，或符合条件的企业策略部署。自行打包的 CRX 不能作为普通 macOS Chrome 用户绕过这些限制的方案。</p>
+      <p><a href="https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world">Chrome 官方：本地加载、固定图标与重新加载</a> · <a href="https://developer.chrome.com/docs/extensions/how-to/distribute">Chrome 官方：分发方式</a></p>
+    </section>
+    <section>
+      <h2>只读结果</h2>
+      <p>unknown 表示该项未知，不能当作停用或未固定。重新读取后，可按需复制下方脱敏 JSON 供排查。</p>
+      <button id="read" type="button">重新读取</button>
+      <pre id="output" role="status">读取中…</pre>
+    </section>
+    <section>
+      <h2>登录提示诊断（默认关闭）</h2>
+      <p>需要排查不弹保存提示时，点击开启，再刷新登录页并重试。只记录步骤、结果、字段是否存在、操作编号和标签页编号；不记录账号、密码、网址、请求内容或错误原文。事件仅留在本扩展会话内，最多 100 条，10 分钟后失效。关闭会立即清空；浏览器重启后关闭。</p>
+      <button id="trace-enable" data-trace type="button">开启 10 分钟诊断并清空旧事件</button>
+      <button id="trace-disable" data-trace type="button">关闭并清空</button>
+      <button id="trace-read" data-trace type="button">读取诊断事件</button>
+      <pre id="trace-output" role="status">诊断状态读取中…</pre>
+    </section>
+  </main>
+  <script src="diagnostics.js"></script>
+</body>
+</html>

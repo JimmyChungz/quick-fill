@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>快填 · 管理</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <header>
+    <h1>快填 · 管理</h1>
+    <div class="actions">
+      <button id="export">明文导出（含密码）</button>
+      <button id="export-raw">导出原始数据备份</button>
+      <label class="file-btn">
+        导入 JSON
+        <input id="import-file" type="file" accept="application/json" hidden>
+      </label>
+      <button id="clear" class="danger">清空所有</button>
+    </div>
+  </header>
+
+  <p id="error" class="error" role="alert" hidden></p>
+  <p id="notice" role="status"></p>
+  <button id="retry" type="button">刷新列表</button>
+  <a href="diagnostics.html">安装与登录诊断</a>
+
+  <section id="vault-controls" aria-label="密码库安全">
+    <h2>密码库安全</h2>
+    <p id="vault-status" role="status">读取状态中…</p>
+    <p id="vault-error" class="error" role="alert"></p><p id="vault-notice" role="status"></p>
+    <p>开启加密后，主密码只在本机用于解锁，不会上传。主密码遗失无法找回。解锁最多持续15分钟，重载扩展或重启浏览器后需要重新解锁；锁定会清除未保存草稿。保存或导入登录密码前必须先开启加密。已有明文记录不会自动迁移，仍可读取、填写与导出；设置自己的主密码后再迁移。</p>
+    <div id="legacy-vault-warning" class="legacy-warning" hidden role="status">
+      <p id="legacy-vault-count"></p><button id="legacy-vault-migrate" type="button">立即建立加密密码库</button>
+      <p>下一步请设置自己的主密码并确认迁移。不会自动改写或删除旧记录。</p>
+    </div>
+    <form id="vault-setup">
+      <label>设置主密码（至少8字符，建议使用更长且不重复的密码）<input id="vault-new" type="password" autocomplete="new-password" minlength="8" maxlength="1024" required></label>
+      <label>再次输入主密码<input id="vault-confirm" type="password" autocomplete="new-password" minlength="8" maxlength="1024" required></label>
+      <label><input id="vault-ack" type="checkbox" required>我理解主密码遗失无法恢复，旧版本无法读取加密后的库</label>
+      <button type="submit">设置主密码并加密现有记录</button>
+    </form>
+    <form id="vault-unlock" hidden><label for="vault-password">主密码</label><div class="master-password-row"><input id="vault-password" type="password" autocomplete="current-password" required maxlength="1024"><button id="vault-password-reveal" class="password-eye" type="button" aria-controls="vault-password" aria-label="显示主密码" aria-pressed="false"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><g class="eye-open"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></g><g class="eye-closed"><path d="M3 9c2 4 5 6 9 6s7-2 9-6M5 12l-2 3m6-1-1 4m7-4 1 4m3-6 2 3"/></g></svg></button></div><button type="submit">解锁15分钟</button></form>
+    <button id="vault-lock" type="button" hidden>立即锁定</button>
+    <form id="vault-change" hidden>
+      <details><summary>更改主密码</summary>
+        <label>原主密码<input id="vault-change-old" type="password" autocomplete="current-password" required maxlength="1024"></label>
+        <label>新主密码<input id="vault-change-new" type="password" autocomplete="new-password" required minlength="8" maxlength="1024"></label>
+        <label>再次输入新主密码<input id="vault-change-confirm" type="password" autocomplete="new-password" required minlength="8" maxlength="1024"></label>
+        <button type="submit">更改主密码</button>
+      </details>
+    </form>
+    <button id="vault-recovery-backup" type="button">导出迁移恢复副本（密文）</button>
+    <button id="vault-backup" type="button" disabled>导出加密备份</button><button id="vault-refresh" type="button">刷新安全状态</button>
+    <details><summary>从加密备份恢复</summary><form id="vault-restore">
+      <label>加密备份文件<input id="vault-file" type="file" accept="application/json" required></label>
+      <label>该备份的主密码<input id="vault-restore-password" type="password" autocomplete="current-password" required maxlength="1024"></label>
+      <button type="submit">验证并恢复</button>
+    </form></details>
+  </section>
+
+  <form id="login-editor" class="editor" hidden>
+    <h2>编辑登录</h2>
+    <label>网站地址<input id="edit-login-origin" required></label>
+    <label>用户名<input id="edit-login-username" autocomplete="username" spellcheck="false"></label>
+    <label>密码<input id="edit-login-password" type="password" autocomplete="current-password"></label>
+    <button id="edit-login-reveal" type="button" aria-pressed="false">显示 / 隐藏密码</button>
+    <div class="actions">
+      <button id="edit-login-save" type="submit">保存</button>
+      <button id="edit-login-cancel" type="button">取消</button>
+    </div>
+  </form>
+
+  <form id="identity-editor" class="editor" hidden>
+    <h2>编辑身份</h2>
+    <label>身份名称<input id="edit-identity-label" required></label>
+    <label>字段 JSON<textarea id="edit-identity-fields" rows="10" spellcheck="false" required aria-describedby="identity-help"></textarea></label>
+    <p id="identity-help" class="muted">使用下方列出的身份 token。删除键或填写空字符串会移除该字段。</p>
+    <div class="actions">
+      <button id="edit-identity-save" type="submit">保存</button>
+      <button id="edit-identity-cancel" type="button">取消</button>
+    </div>
+  </form>
+
+  <section>
+    <h2>登录 <span class="hint">点击行内"编辑"修改;点击"删除"移除</span></h2>
+    <table>
+      <thead>
+        <tr><th>origin</th><th>用户名</th><th>密码</th><th></th></tr>
+      </thead>
+      <tbody id="logins-tbody"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>身份 <span class="hint">编辑时填 JSON;只接受以下 token</span></h2>
+    <table>
+      <thead>
+        <tr><th>名称</th><th>字段数</th><th>字段</th><th></th></tr>
+      </thead>
+      <tbody id="identities-tbody"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>永不保存的网站</h2>
+    <p class="muted">恢复后，该网站下次提交登录时可再次提示保存。</p>
+    <ul id="blacklist"></ul>
+  </section>
+
+  <section>
+    <h2>支持的身份 FieldToken</h2>
+    <ul id="token-legend" class="legend"></ul>
+  </section>
+
+  <script src="options.js"></script>
+</body>
+</html>
