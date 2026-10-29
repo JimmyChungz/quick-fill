@@ -34,7 +34,11 @@ export function selectPublicFiles(paths) {
       || path.split('/').some(part => part === '.' || part === '..' || part === '') || privatePath(path)) return false;
     if (/(^|\/)\.env(?:\.|$)/i.test(path) || /\.(?:pem|key|p12|pfx|jks|keystore|zip|crx|map|sqlite|db)$/i.test(path)) return false;
     return ROOT_FILES.has(path) || /^(?:src|public|test|scripts|\.github)\//.test(path);
-  }).map(source => ({ source, path: source === 'docs/PUBLIC_README.md' ? 'README.md' : source }))
+  }).flatMap(source => source === 'docs/PUBLIC_README.md'
+    // Keep the canonical template too: the exported project must be able to
+    // run its own scanner/exporter without the private repository present.
+    ? [{ source, path: 'README.md' }, { source, path: source }]
+    : [{ source, path: source }])
     .sort((a, b) => a.path.localeCompare(b.path));
 }
 

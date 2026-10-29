@@ -35,7 +35,7 @@ test('selects only public source inputs, maps the public README, and excludes pr
   const allowed = ['LICENSE', '.nvmrc', '.gitignore', 'src/main.ts', 'public/icon.png', 'test/example.test.ts', 'scripts/build.mjs', '.github/workflows/verify.yml', 'package.json', 'package-lock.json', 'manifest.json', 'tsconfig.json', 'vitest.config.ts', 'esbuild.config.mjs', 'AGENTS.md', 'PRODUCT.md', 'docs/PRIVACY.md', 'docs/SECURITY.md', 'docs/ARCHITECTURE.md'];
   const denied = ['.git/config', 'dist/content.js', '.build/extension/content.js', 'node_modules/pkg/index.js', 'releases/source.zip', 'release-evidence/result.json', 'docs/HandOff.md', 'docs/private-notes.md', 'exports/vault.json', '../src/outside.ts', '/src/absolute.ts', 'src/../private.ts', 'src/.env', 'src/.env.local', 'public/private.pem', 'scripts/signing.key', 'src/backups/profile.json', 'src/exports/profile.json', 'test/credentials.json', 'src/HandOff-export.json', 'public/source.js.map'];
   const selected = selectPublicFiles([...allowed, ...denied, 'docs/PUBLIC_README.md']);
-  assert.deepEqual(selected, [...allowed.map(source => ({ source, path: source })), { source: 'docs/PUBLIC_README.md', path: 'README.md' }].sort((a, b) => a.path.localeCompare(b.path)));
+  assert.deepEqual(selected, [...allowed.map(source => ({ source, path: source })), { source: 'docs/PUBLIC_README.md', path: 'README.md' }, { source: 'docs/PUBLIC_README.md', path: 'docs/PUBLIC_README.md' }].sort((a, b) => a.path.localeCompare(b.path)));
 });
 
 test('reports high confidence token/private-key rules without returning their values', () => {
@@ -96,8 +96,15 @@ test('exports only committed allowlisted files, hashes the archive and every ent
   assert.equal(manifest.sha256, createHash('sha256').update(readFileSync(zip)).digest('hex'));
   const entries = execFileSync('unzip', ['-Z', '-1', zip], { encoding: 'utf8' }).trim().split('\n').sort();
   assert.deepEqual(entries, manifest.files.map(file => file.path).sort());
-  assert.ok(entries.includes('README.md')); assert.ok(entries.includes('LICENSE')); assert.ok(entries.includes('.nvmrc')); assert.ok(!entries.includes('docs/PUBLIC_README.md'));
+  assert.ok(entries.includes('README.md')); assert.ok(entries.includes('LICENSE')); assert.ok(entries.includes('.nvmrc')); assert.ok(entries.includes('docs/PUBLIC_README.md'));
+  assert.equal(execFileSync('unzip',['-p',zip,'README.md'],{encoding:'utf8'}),execFileSync('unzip',['-p',zip,'docs/PUBLIC_README.md'],{encoding:'utf8'}));
   for (const file of manifest.files) assert.equal(file.sha256, createHash('sha256').update(execFileSync('unzip', ['-p', zip, file.path])).digest('hex'));
+  const roundtrip = join(repo.root,'roundtrip'); mkdirSync(roundtrip);
+  execFileSync('unzip',['-q',zip,'-d',roundtrip]);
+  const publicGit=(...args)=>execFileSync('git',args,{cwd:roundtrip,stdio:'pipe'});
+  publicGit('init','-q');publicGit('config','user.name','Synthetic Public');publicGit('config','user.email','public@example.invalid');publicGit('add','.');publicGit('commit','-qm','Synthetic public snapshot');
+  const rescanned=spawnSync(process.execPath,[script,'--scan-only'],{cwd:roundtrip,encoding:'utf8'});
+  assert.equal(rescanned.status,0,rescanned.stdout+rescanned.stderr);
   assert.equal(repo.run().status, 1);
 });
 
