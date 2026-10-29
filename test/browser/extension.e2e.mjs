@@ -13,6 +13,29 @@ async function poll(fn,timeout=12000){const end=Date.now()+timeout;let last;whil
 async function message(page,value){return page.evaluate(value=>chrome.runtime.sendMessage(value),value);}
 async function count(page){const result=await message(page,{type:'qf.get_profiles'});assert.equal(result.type,'qf.profiles');return result.profiles.length;}
 async function trace(page){const result=await message(page,{type:'qf.trace_read'});return result.events??[];}
+// CDP can inspect the CLOSED shadow root in this disposable synthetic browser.
+// Locate the rendered control, then use a real mouse click; font metrics differ
+// across macOS and Linux, so a hard-coded viewport coordinate is not reliable.
+async function clickSave(page){
+ const cdp=await page.context().newCDPSession(page);
+ try{
+  const point=await poll(async()=>{
+   const {root}=await cdp.send('DOM.getDocument',{depth:-1,pierce:true});
+   const buttons=[];
+   function visit(node){
+    const attrs=node.attributes??[];
+    if(node.nodeName==='BUTTON'&&attrs.some((a,i)=>i%2===0&&a==='class'&&attrs[i+1].split(/\s+/).includes('primary')))buttons.push(node);
+    for(const child of [...(node.children??[]),...(node.shadowRoots??[]),...(node.contentDocument?[node.contentDocument]:[])])visit(child);
+   }
+   visit(root);assert.equal(buttons.length,1,'exactly one synthetic save control must be present');
+   const {model}=await cdp.send('DOM.getBoxModel',{nodeId:buttons[0].nodeId});
+   const q=model.content;
+   return {x:(q[0]+q[2]+q[4]+q[6])/4,y:(q[1]+q[3]+q[5]+q[7])/4};
+  });
+  if(!evidence.saveControlPoint){evidence.saveControlPoint=point;console.log("[browser] save control center",JSON.stringify(point));}
+  await page.mouse.click(point.x,point.y);
+ }finally{await cdp.detach();}
+}
 const geometry=`<!doctype html><meta charset=utf-8><title>Synthetic geometry</title><body style="margin:30px;height:3000px"><form><label>Email<input id=email type=email autocomplete=email></label><input id=off autocomplete=street-address style="position:absolute;left:-100000px"><input id=tiny autocomplete=tel style="position:absolute;width:1px;height:1px;clip-path:inset(50%)"><input id=below autocomplete=tel style="position:absolute;top:1800px;left:30px;width:200px;height:30px"><div style="width:1px;height:1px;overflow:hidden"><input id=fixed autocomplete=tel style="position:fixed;left:500px;top:100px;width:200px;height:30px"></div><div style="width:1px;height:1px;overflow:hidden;transform:translateZ(0)"><input id=clipped-fixed autocomplete=tel style="position:fixed;left:200px;top:100px;width:200px;height:30px"></div></form></body>`;
 
 test('isolated Chromium MV3: capture, scoped fill, private inline unlock and restart', {timeout:180000},async()=>{
@@ -42,10 +65,9 @@ test('isolated Chromium MV3: capture, scoped fill, private inline unlock and res
     await page.getByRole('button',{name:flow==='native'?'Log in':'Continue',exact:true}).click();
     if(flow==='spa'){await page.getByRole('heading',{name:'SPA replacement complete',exact:true}).waitFor();await poll(()=>page.evaluate(()=>document.documentElement.lastElementChild?.tagName==='DIV'));}
     await poll(async()=>(await trace(diagnostics)).some(e=>e.event==='banner_shown'));
-    // The production banner intentionally has a CLOSED shadow root. This
-    // synthetic viewport is fixed; exercise its visible Save control by mouse.
+    // Exercise the visible control without changing the closed production root.
     if(flow==='native'&&i===0)await page.screenshot({path:join(root,'release-evidence/browser-save-preview.png')});
-    await page.mouse.click(1025,110);
+    await clickSave(page);
     await poll(async()=>(await count(options))===before+1);
     const events=await poll(async()=>{const events=await trace(diagnostics);return events.some(e=>e.event==='pending_save_ack')?events:null;});
     for(const event of ['save_click','pending_save_sent','pending_save_ack'])assert(events.some(e=>e.event===event));
@@ -64,26 +86,26 @@ test('isolated Chromium MV3: capture, scoped fill, private inline unlock and res
   await new Promise(r=>setTimeout(r,200));assert.equal(await count(options),13);assert(!(await trace(diagnostics)).some(e=>e.event==='banner_shown'));
   await message(diagnostics,{type:'qf.trace_set',enabled:true});await page.goto(`${origin}/native`);
   await page.locator('#username').fill('synthetic-native-0');await page.locator('#password').fill('Synthetic-changed-42!');await page.getByRole('button',{name:'Log in',exact:true}).click();
-  await poll(async()=>(await trace(diagnostics)).some(e=>e.event==='banner_shown'));await page.mouse.click(1025,110);
+  await poll(async()=>(await trace(diagnostics)).some(e=>e.event==='banner_shown'));await clickSave(page);
   await poll(async()=>{const res=await message(options,{type:'qf.get_profiles'});return res.profiles.find(p=>p.username==='synthetic-native-0')?.password==='Synthetic-changed-42!';});assert.equal(await count(options),13);
   evidence.cases.push({case:'exact deduplication and same-account password update',status:'PASS'});
   for(const method of ['enter','requestSubmit']){
    await message(diagnostics,{type:'qf.trace_set',enabled:true});await page.goto(`${origin}/constraints`);const before=await count(options);
    await page.locator('#username').fill(`synthetic-${method}@example.test`);await page.locator('#password').fill('Synthetic-only-42!');
    if(method==='enter')await page.locator('#password').press('Enter');else {await page.getByRole('heading',{level:1}).click();await page.getByRole('button',{name:'Call requestSubmit()',exact:true}).click();}
-   await poll(async()=>(await trace(diagnostics)).some(e=>e.event==='banner_shown'));await page.mouse.click(1025,110);await poll(async()=>(await count(options))===before+1);
+   await poll(async()=>(await trace(diagnostics)).some(e=>e.event==='banner_shown'));await clickSave(page);await poll(async()=>(await count(options))===before+1);
   }
   evidence.cases.push({case:'Enter and native requestSubmit',status:'PASS'});
   for (const label of ['Connexion','ログイン','Iniciar sesión']) {
    await message(diagnostics,{type:'qf.trace_set',enabled:true});await page.goto(`${origin}/spa-localized`);const before=await count(options);
    await page.locator('#login-label').selectOption({label});await page.locator('#username').fill(`synthetic-${label}`);await page.locator('#password').fill('Synthetic-localized-42!');
    await page.getByRole('heading',{level:1}).click();await page.locator('#localized-login').click();
-   await poll(async()=>(await trace(diagnostics)).some(e=>e.event==='banner_shown'));await page.mouse.click(1025,110);await poll(async()=>(await count(options))===before+1);
+   await poll(async()=>(await trace(diagnostics)).some(e=>e.event==='banner_shown'));await clickSave(page);await poll(async()=>(await count(options))===before+1);
   }
   evidence.cases.push({case:'localized formless login controls',attempts:3,status:'PASS'});
   await message(diagnostics,{type:'qf.trace_set',enabled:true});await page.goto(`${origin}/spa-enter`);const beforeEnter=await count(options);
   await page.locator('#username').fill('synthetic-formless-enter');await page.locator('#password').fill('Synthetic-formless-42!');await page.locator('#password').press('Enter');
-  await poll(async()=>(await trace(diagnostics)).some(e=>e.event==='banner_shown'));await page.mouse.click(1025,110);await poll(async()=>(await count(options))===beforeEnter+1);
+  await poll(async()=>(await trace(diagnostics)).some(e=>e.event==='banner_shown'));await clickSave(page);await poll(async()=>(await count(options))===beforeEnter+1);
   evidence.cases.push({case:'semantic formless password Enter',status:'PASS'});
   for (const control of ['subscribe','register','create-account','show-password','cancel','back']) {
    await message(diagnostics,{type:'qf.trace_set',enabled:true});await page.goto(`${origin}/spa-localized`);
@@ -100,8 +122,8 @@ test('isolated Chromium MV3: capture, scoped fill, private inline unlock and res
    await target.goto(`${origin}/native`);await target.locator('#username').fill(account);await target.locator('#password').fill('Synthetic-only-42!');await target.getByRole('button',{name:'Log in',exact:true}).click();
   }
   await poll(async()=>(await trace(diagnostics)).filter(e=>e.event==='banner_shown').length>=2);
-  await page.mouse.click(1025,110);await poll(async()=>(await count(options))===beforeTabs+1);
-  await other.mouse.click(1025,110);await poll(async()=>(await count(options))===beforeTabs+2);await other.close();evidence.cases.push({case:'two-tab independent save operations',status:'PASS'});
+  await clickSave(page);await poll(async()=>(await count(options))===beforeTabs+1);
+  await clickSave(other);await poll(async()=>(await count(options))===beforeTabs+2);await other.close();evidence.cases.push({case:'two-tab independent save operations',status:'PASS'});
   // Seed a synthetic identity through an authorized management request.
   let profiles=await message(options,{type:'qf.get_profiles'});
   await message(options,{type:'qf.update_profile',generation:profiles.generation,create:true,profile:{id:'synthetic-identity',kind:'identity',label:'Synthetic identity',fields:{email:'synthetic@example.test',tel:'synthetic-phone','street-address':'synthetic-address'},updatedAt:Date.now()}});
