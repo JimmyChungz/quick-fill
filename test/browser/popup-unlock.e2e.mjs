@@ -1,0 +1,42 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {createServer} from 'node:http';
+import {mkdtemp,rm,mkdir,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {resolve,join} from 'node:path';
+import {chromium} from 'playwright';
+const root=resolve(import.meta.dirname,'../..'),id='neilinbkkjgcnflgamepebchiapfcibm';
+test('extension popup page unlocks directly, clears passwords and retains records',{timeout:45000},async()=>{
+ const profile=await mkdtemp(join(tmpdir(),'qf-popup-unlock-'));
+ const server=createServer((req,res)=>{res.writeHead(200,{'Content-Type':'text/html'});res.end('<!doctype html><input autocomplete=username><input type=password>');});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));let context;
+ try{
+  context=await chromium.launchPersistentContext(profile,{channel:'chromium',headless:true,viewport:{width:360,height:500},args:[`--disable-extensions-except=${join(root,'.build/extension')}`,`--load-extension=${join(root,'.build/extension')}`]});
+  if(!context.serviceWorkers()[0])await context.waitForEvent('serviceworker');
+  const options=await context.newPage();await options.goto(`chrome-extension://${id}/options.html`);
+  const send=msg=>options.evaluate(msg=>chrome.runtime.sendMessage(msg),msg);
+  const state=await send({type:'qf.get_profiles'});
+  const blocked=await send({type:'qf.update_profile',generation:state.generation,create:true,profile:{id:'synthetic-blocked',kind:'login',url:'https://example.test',username:'synthetic',password:'Synthetic-must-not-persist',updatedAt:1}});
+  assert.equal(blocked.type,'qf.error');assert.match(blocked.message,/加密/);assert.equal((await send({type:'qf.get_profiles'})).profiles.length,0);
+  assert.equal((await send({type:'qf.update_profile',generation:state.generation,create:true,profile:{id:'synthetic-popup-record',kind:'identity',label:'Synthetic retained identity',fields:{email:'synthetic@example.test'},updatedAt:Date.now()}})).type,'qf.profiles');
+  assert.equal((await send({type:'qf.vault_setup',password:'Synth8!!'})).unlocked,true);
+  await send({type:'qf.vault_lock'});
+  const website=await context.newPage();await website.goto(`http://127.0.0.1:${server.address().port}/`);
+  const popup=await context.newPage();await popup.goto(`chrome-extension://${id}/popup.html`);
+  await popup.locator('#popup-master-password').waitFor({state:'visible'});
+  assert.equal(await popup.locator('#record-list').isVisible(),false);
+  await popup.locator('#popup-master-password').fill('Wrong8!!');await popup.locator('#popup-unlock').click();
+  await popup.getByRole('alert').filter({hasText:'主密码不正确'}).waitFor();
+  assert.equal(await popup.locator('#popup-master-password').inputValue(),'');
+  await popup.locator('#popup-master-password').fill('Synth8!!');await popup.reload();
+  await popup.locator('#popup-master-password').waitFor({state:'visible'});assert.equal(await popup.locator('#popup-master-password').inputValue(),'');
+  await popup.screenshot({path:join(root,'release-evidence/popup-unlock-preview.png')});
+  await popup.locator('#popup-master-password').fill('Synth8!!');await popup.locator('#popup-master-password').press('Enter');
+  await popup.getByText('Synthetic retained identity',{exact:true}).waitFor();
+  assert.equal(await popup.locator('#popup-master-password').inputValue(),'');
+  assert.equal((await send({type:'qf.get_profiles'})).profiles.length,1);
+  assert.equal(context.pages().filter(p=>p.url().includes('/options.html')).length,1);
+  assert.equal(await website.locator('input[type=password]').inputValue(),'');
+  await writeFile(join(root,'release-evidence/popup-unlock-browser-0.6.0.json'),JSON.stringify({status:'PASS',profile:'temporary isolated synthetic profile',surface:'real extension popup.html rendered in a tab; physical toolbar click requires user confirmation',cases:['locked popup direct form','wrong password retry and cleared input','reopen clears password','eight-character master via Enter','records retained','no management navigation','website password untouched']},null,2)+'\n');
+ }finally{if(context)await context.close();await new Promise(r=>server.close(r));await rm(profile,{recursive:true,force:true});}
+});

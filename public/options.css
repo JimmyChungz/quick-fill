@@ -1,0 +1,82 @@
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #222;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #fafafa;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+header h1 { margin: 0; font-size: 20px; }
+.actions { display: flex; gap: 8px; }
+.actions button, .file-btn {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+.actions button:hover, .file-btn:hover { background: #f0f7ff; }
+.actions .danger { color: #b00; border-color: #e0b0b0; }
+.actions .danger:hover { background: #fff0f0; }
+section { background: #fff; padding: 16px; border-radius: 6px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+h2 { font-size: 14px; margin: 0 0 12px; }
+h2 .hint { font-weight: 400; color: #888; font-size: 12px; margin-left: 8px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+th { font-size: 12px; color: #888; font-weight: 600; }
+td code { font-size: 12px; color: #666; }
+.muted { color: #888; }
+.actions-cell { text-align: right; white-space: nowrap; }
+.actions-cell button {
+  padding: 4px 8px;
+  margin-left: 4px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+}
+.legend { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 16px; }
+.legend li { font-size: 13px; }
+.legend code { background: #f5f5f5; padding: 1px 4px; border-radius: 2px; font-size: 12px; }
+
+[hidden] { display: none !important; }
+.error { padding: 12px; color: #a40000; background: #fff0f0; overflow-wrap: anywhere; }
+#notice { color: #285c2d; }
+#retry { margin-bottom: 12px; }
+.editor { background: #fff; border: 1px solid #b8cbea; border-radius: 6px; padding: 16px; margin-bottom: 16px; }
+.editor label { display: block; margin-bottom: 10px; }
+.editor input, .editor textarea { display: block; width: 100%; margin-top: 4px; padding: 7px; border: 1px solid #bbb; border-radius: 3px; font: inherit; }
+.editor .actions { margin-top: 12px; }
+#blacklist { list-style: none; padding: 0; }
+#blacklist li { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 8px 0; overflow-wrap: anywhere; }
+button:disabled { opacity: .6; cursor: wait; }
+button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+#vault-controls { padding: 16px; border: 1px solid #ddd; border-radius: 8px; }
+#vault-controls form { display: grid; gap: 8px; margin: 12px 0; max-width: 580px; }
+#vault-controls label { display: block; }
+#vault-controls input[type=password] { display: block; width: 100%; font: inherit; padding: 8px; }
+#vault-controls details { margin: 12px 0; }
+
+.master-password-row { position: relative; display: flex; align-items: center; }
+.master-password-row input { flex: 1; min-width: 0; width: 100%; font: inherit; padding: 8px; padding-right: 46px !important; }
+.master-password-row .password-eye { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); width: 38px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 5px; border: 0; background: transparent; color: #526174; cursor: pointer; }
+.password-eye .eye-open { display: none; }
+.password-eye[aria-pressed="true"] .eye-open { display: inline; }
+.password-eye[aria-pressed="true"] .eye-closed { display: none; }
+.password-eye:focus-visible { outline: 2px solid #245fcb; outline-offset: -2px; border-radius: 5px; }
+
+.legacy-warning { padding: 12px 16px; margin: 8px; border: 1px solid #d9b25c; border-radius: 6px; background: #fff8e6; color: #58451d; }
+.legacy-warning p { margin: 0 0 8px; }
+.legacy-warning button { padding: 7px 10px; cursor: pointer; }

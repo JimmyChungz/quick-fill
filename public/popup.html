@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>快填</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header id="popup-header">
+    <input id="search" type="search" aria-label="搜索记录" placeholder="搜索 url / 用户名 / 标签..." autocomplete="off">
+  </header>
+  <header id="editor-header" hidden>
+    <div class="editor-heading">
+      <h1 id="editor-title">编辑记录</h1>
+      <button id="editor-open-manager" type="button">管理全部</button>
+    </div>
+    <p>切换网页后可回来继续编辑。草稿仅保留在当前标签页，保存后才写入本地库。</p>
+  </header>
+  <section id="vault-unlock-panel" hidden aria-labelledby="vault-unlock-title">
+    <h1 id="vault-unlock-title">解锁快填</h1>
+    <p id="popup-unlock-help">输入主密码即可继续使用，无需打开管理页。</p>
+    <form id="vault-unlock-form" method="post">
+      <label for="popup-master-password">主密码</label>
+      <div class="master-password-row"><input id="popup-master-password" type="password" autocomplete="current-password" minlength="8" maxlength="1024" required aria-describedby="popup-unlock-help"><button id="popup-master-reveal" class="password-eye" type="button" aria-controls="popup-master-password" aria-label="显示主密码" aria-pressed="false"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><g class="eye-open"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></g><g class="eye-closed"><path d="M3 9c2 4 5 6 9 6s7-2 9-6M5 12l-2 3m6-1-1 4m7-4 1 4m3-6 2 3"/></g></svg></button></div>
+      <button id="popup-unlock" class="primary" type="submit">解锁并继续</button>
+    </form>
+  </section>
+  <section id="popup-legacy-warning" class="legacy-warning" hidden role="status">
+    <p id="popup-legacy-count"></p>
+    <button id="popup-legacy-migrate" type="button">立即建立加密密码库</button>
+  </section>
+  <p id="error" class="error" role="alert" hidden></p>
+  <button id="retry" type="button">刷新列表</button>
+  <main id="record-list">
+    <section>
+      <h2>登录</h2>
+      <ul id="logins"></ul>
+    </section>
+    <section>
+      <h2>身份</h2>
+      <ul id="identities"></ul>
+    </section>
+  </main>
+  <footer id="popup-actions">
+    <button id="new-login">新建登录</button>
+    <button id="new-identity">新建身份</button>
+    <button id="manage">管理全部</button>
+  </footer>
+
+  <section id="editor-complete" hidden>
+    <p id="editor-status" role="status" tabindex="-1"></p>
+    <div class="form-actions">
+      <button id="editor-manage" type="button">返回管理页面</button>
+      <button id="editor-close" type="button">关闭此标签页</button>
+    </div>
+  </section>
+
+  <!-- Login and identity forms are shared by the persistent editor tab. -->
+  <div id="new-login-form" class="form-panel" hidden>
+    <div class="form-fields">
+      <h2>登录信息</h2>
+      <label for="nl-origin">网站地址</label>
+      <input id="nl-origin" aria-label="网站地址" placeholder="网站 origin (https://example.com)">
+      <label for="nl-username">用户名</label>
+      <input id="nl-username" aria-label="用户名" autocomplete="username" spellcheck="false" placeholder="用户名">
+      <label for="nl-password">密码</label>
+      <div class="pw-row">
+        <input id="nl-password" aria-label="密码" autocomplete="current-password" type="password" placeholder="密码">
+        <button id="nl-reveal" type="button" aria-pressed="false" aria-label="显示或隐藏密码" title="显示 / 隐藏密码">&#128065;</button>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="button" id="nl-save" class="primary">保存</button>
+      <button type="button" id="nl-cancel">取消</button>
+    </div>
+  </div>
+
+  <!-- 新建身份 form -->
+  <div id="new-identity-form" class="form-panel" hidden>
+    <div class="form-fields">
+      <h2>身份信息</h2>
+      <label for="ni-label">身份名称</label>
+      <input id="ni-label" aria-label="身份名称" placeholder="名称 (如 家庭/工作)">
+      <label for="ni-name">姓名</label>
+      <input id="ni-name" aria-label="姓名" placeholder="姓名">
+      <label for="ni-email">邮箱</label>
+      <input id="ni-email" aria-label="邮箱" placeholder="邮箱">
+      <label for="ni-tel">电话</label>
+      <input id="ni-tel" aria-label="电话" placeholder="电话">
+      <label for="ni-org">组织</label>
+      <input id="ni-org" aria-label="组织" placeholder="组织 / 公司">
+      <label for="ni-street">详细地址</label>
+      <input id="ni-street" aria-label="详细地址" placeholder="详细地址">
+      <label for="ni-city">城市</label>
+      <input id="ni-city" aria-label="城市" placeholder="城市">
+      <label for="ni-state">省或州</label>
+      <input id="ni-state" aria-label="省或州" placeholder="省 / 州">
+      <label for="ni-zip">邮编</label>
+      <input id="ni-zip" aria-label="邮编" placeholder="邮编">
+      <label for="ni-country">国家</label>
+      <input id="ni-country" aria-label="国家" placeholder="国家">
+    </div>
+    <div class="form-actions">
+      <button type="button" id="ni-save" class="primary">保存</button>
+      <button type="button" id="ni-cancel">取消</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
